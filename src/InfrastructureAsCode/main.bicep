@@ -13,7 +13,7 @@ var registryName = '${uniqueString(resourceGroup().id)}mpnpreg'
 var registrySku = 'Standard'
 var imageName = 'techexcel/dotnetcoreapp'
 var startupCommand = ''
-
+var redisCacheName = '${uniqueString(resourceGroup().id)}-mpnp-redis'
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   name: logAnalyticsName
@@ -28,7 +28,6 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12
     }
   }
 }
-
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: appInsightsName
@@ -96,11 +95,24 @@ resource appServiceApp 'Microsoft.Web/sites@2020-12-01' = {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
           value: appInsights.properties.InstrumentationKey
         }
-        ]
-      }
+      ]
     }
+  }
+}
+
+resource redisCache 'Microsoft.Cache/Redis@2021-06-01' = {
+  name: redisCacheName
+  location: location
+  properties: {
+    sku: {
+      name: 'Basic'
+      family: 'C'
+      capacity: 0
+    }
+  }
 }
 
 output application_name string = appServiceApp.name
 output application_url string = appServiceApp.properties.hostNames[0]
 output container_registry_name string = containerRegistry.name
+output redis_cache_name string = redisCache.name
